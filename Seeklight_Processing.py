@@ -27,49 +27,55 @@ def filemerge(files):
     return (f1)
 
 def build008(row):
-    field008 = "######s"
+    ##Add date from current, formatted to 6 digits
+    currentdate = datetime.date.today().strftime("%y%m%d")
+    field008 = currentdate + "s"
     #add date
     field008 = field008 + str(row["Date"])[:4]
     field008 = field008 + "####"
     #add place of publication (Canadian provinces and territories, default to Canada if no province listed)
-    if "british columbia" in str(row["Location"]).lower() or "b.c." in str(row["Location"]).lower():
-        field008 = field008 + "bcc"
-    elif "alberta" in str(row["Location"]).lower():
-        field008 = field008 + "abc"
-    elif "saskatchewan" in str(row["Location"]).lower():
-        field008 = field008 + "snc"
-    elif "manitoba" in str(row["Location"]).lower():
-        field008 = field008 + "mbc"
-    elif "ontario" in str(row["Location"]).lower():
-        field008 = field008 + "onc"
-    elif "quebec" in str(row["Location"]).lower() or "québec" in str(row["Location"]).lower():
-        field008 = field008 + "quc"
-    elif "new brunswick" in str(row["Location"]).lower():
-        field008 = field008 + "nkc"
-    elif "prince edward island" in str(row["Location"]).lower() or "pei" in str(row["Location"]).lower():
-        field008 = field008 + "pic"
-    elif "nova scotia" in str(row["Location"]).lower():
-        field008 = field008 + "nsc"
-    elif "newfoundland" in str(row["Location"]).lower() or "labrador" in str(row["Location"]).lower():
-        field008 = field008 + "nfc"
-    elif "yukon" in str(row["Location"]).lower():
-        field008 = field008 + "ykc"
-    elif "northwest territories" in str(row["Location"]).lower() or "nwt" in str(row["Location"]).lower():
-        field008 = field008 + "ntc"
-    elif "nunavut" in str(row["Location"]).lower():
-        field008 = field008 + "nuc"
-    else:
-        field008 = field008 + "-cn"
+    # if "british columbia" in str(row["Location"]).lower() or "b.c." in str(row["Location"]).lower():
+    #     field008 = field008 + "bcc"
+    # elif "alberta" in str(row["Location"]).lower():
+    #     field008 = field008 + "abc"
+    # elif "saskatchewan" in str(row["Location"]).lower():
+    #     field008 = field008 + "snc"
+    # elif "manitoba" in str(row["Location"]).lower():
+    #     field008 = field008 + "mbc"
+    # elif "ontario" in str(row["Location"]).lower():
+    #     field008 = field008 + "onc"
+    # elif "quebec" in str(row["Location"]).lower() or "québec" in str(row["Location"]).lower():
+    #     field008 = field008 + "quc"
+    # elif "new brunswick" in str(row["Location"]).lower():
+    #     field008 = field008 + "nkc"
+    # elif "prince edward island" in str(row["Location"]).lower() or "pei" in str(row["Location"]).lower():
+    #     field008 = field008 + "pic"
+    # elif "nova scotia" in str(row["Location"]).lower():
+    #     field008 = field008 + "nsc"
+    # elif "newfoundland" in str(row["Location"]).lower() or "labrador" in str(row["Location"]).lower():
+    #     field008 = field008 + "nfc"
+    # elif "yukon" in str(row["Location"]).lower():
+    #     field008 = field008 + "ykc"
+    # elif "northwest territories" in str(row["Location"]).lower() or "nwt" in str(row["Location"]).lower():
+    #     field008 = field008 + "ntc"
+    # elif "nunavut" in str(row["Location"]).lower():
+    #     field008 = field008 + "nuc"
+    # else:
+    #     field008 = field008 + "-cn"
+    ##Hard coding location
+    field008 = field008 + "onc"
     field008 = field008 + "####|o####f00|#0#"
     #add language based on content of Language field
-    if "|" in str(row["Language"]):
-        field008 = field008 + "mul"
-    elif "french" in str(row["Language"]).lower():
-        field008 = field008 + "fre"
-    elif "english" in str(row["Language"]).lower():
-        field008 = field008 + "eng"
-    else:
-        field008 = field008 + "und"
+    # if "|" in str(row["Language"]):
+    #     field008 = field008 + "mul"
+    # elif "french" in str(row["Language"]).lower():
+    #     field008 = field008 + "fre"
+    # elif "english" in str(row["Language"]).lower():
+    #     field008 = field008 + "eng"
+    # else:
+    #     field008 = field008 + "und"
+    ##Language set to English only
+    field008 = field008 + "eng"
     field008 = field008 + "#d"
     return field008
 
@@ -105,11 +111,12 @@ def removeheadings(subjects):
 
 def mdprocess(i, row, MARCdf):
     #set fixed/default fields (LDR, 040, 300, 336, 337, 338, 347 (partial), 533 (partial), 588 (partial), 901)
-    MARCdf["LDR"][i] = "#####nam#a22########4500"
-    MARCdf["006"][i] = "m#####o##d########"
+    MARCdf["LDR"][i] = "#####nam#a22#####7i#4500"
+    MARCdf["006"][i] = "m#####o##d#f######"
     MARCdf["007"][i] = "cr#bn#|||a||||"
     MARCdf["040$a"][i] = "CaOOP"
     MARCdf["040$b"][i] = "eng"
+    MARCdf["040$e"][i] = "rda"
     MARCdf["040$c"][i] = "CaOOP"
     MARCdf["300$a"][i] = "1 online resource"
     MARCdf["336$a"][i] = "text"
@@ -128,24 +135,36 @@ def mdprocess(i, row, MARCdf):
     MARCdf["533$c"][i] = "JSTOR Seeklight,"
     MARCdf["533$5"][i] = "CaOOP"
     MARCdf["588$5"][i] = "CaOOP"
+    MARCdf["7101 $a"][i] = "Canada."
+    MARCdf["7101 $b"][i] = "Parliament.|House of Commons.|Office of the Government House Leader,"
+    MARCdf["7101 $e"][i] = "issuing body."
     MARCdf["901$a"][i] = "SESSIONPAP"
     #construct 008
     field008 = build008(row)
     MARCdf["008"][i] = field008
     #set variable fields (035, 041, 100, 245, 264, 347 (partial), 490, 520, 533$d, 600, 650, 700, 830, 988)
     MARCdf["035$z"][i] = "(JSTOR)" + str(row["SSID"])
-    if "|" in str(row["Language"]):
-        MARCdf["041$a"][i] = str(row["Language"])
+    # if "|" in str(row["Language"]):
+    #     MARCdf["041$a"][i] = str(row["Language"])
+    ##Hard code language to eng and fre
+    MARCdf["0410 $a"][i] = "eng|fre"
     #split Creator into 110 and 710 at | if present
-    if "|" in row["Creator"]:
-        MARCdf["1102 $a"][i] = str(row["Creator"])[:str(row["Creator"]).index('|')]
-        MARCdf["710$a"][i] = str(row["Creator"])[str(row["Creator"]).index('|'):]
-    else:
-        MARCdf["1102 $a"][i] = str(row["Creator"])
-    MARCdf["24510$a"][i] = str(row["Title"])
-    MARCdf["264 1$a"][i] = str(row["Location"])
-    MARCdf["264 1$b"][i] = str(row["Publisher"])
-    MARCdf["264 1$c"][i] = str(row["Date"])[:4]
+    # if "|" in row["Creator"]:
+    #     MARCdf["1102 $a"][i] = str(row["Creator"])[:str(row["Creator"]).index('|')]
+    #     MARCdf["710$a"][i] = str(row["Creator"])[str(row["Creator"]).index('|'):]
+    # else:
+    #     MARCdf["1102 $a"][i] = str(row["Creator"])
+    ##Putting all creators/named entities in 700 by default
+    MARCdf["700$a"][i] = str(row["Creator"]) + "|" + str(row["Named Entities"])
+    #MARCdf["24510$a"][i] = str(row["Title"])
+    ##Replace title with filename
+    MARCdf["24510$a"][i] = str(str(row["Filename"]).split("/")[-1]).rstrip(".pdfa")
+    # MARCdf["264 1$a"][i] = str(row["Location"])
+    # MARCdf["264 1$b"][i] = str(row["Publisher"])
+    ##Hard-coding publisher
+    MARCdf["264 1$a"][i] = "[Ottawa]:"
+    MARCdf["264 1$b"][i] = "[House of Commons],"
+    MARCdf["264 1$c"][i] = str(row["Date"])[:4] + "."
     MARCdf["3479 $c"][i] = str(getfilesize(row))
     MARCdf["4901 $a"][i] = "Sessional paper / House of Commons = Document parlementaire / Chambre des communes ; "
     MARCdf["4901 $v"][i] = str(str(row["Filename"]).split("/")[-1]).rstrip(".pdfa")
@@ -153,10 +172,13 @@ def mdprocess(i, row, MARCdf):
     currentyear = datetime.date.today().strftime("%Y")
     MARCdf["533$d"][i] = str(currentyear)
     #MARCdf["520$a"][i] = str(row["Description"])
-    MARCdf["610$a"][i] = str(row["Named Entities"])
+    ##520 removed at request
+    #MARCdf["610$a"][i] = str(row["Named Entities"])
+    ##All named entities to 700 with creator
     #Remove unwanted headings
-    headings = removeheadings(str(row["Subject"]))
-    MARCdf["650$a"][i] = headings
+    #headings = removeheadings(str(row["Subject"]))
+    #MARCdf["650$a"][i] = headings
+    ##Removing all headings
     #Conditional handling of 533$a/n, 588$a, 830$a, defaulting to English unless French specified in 040$b
     if MARCdf["040$b"][i] == "fre":
         MARCdf["533$a"][i] = "Reproduction électronique."
@@ -202,7 +224,7 @@ def main():
     reci = len(df)
     ## "520$a" removed at request
     ##Change 600 & 610 ind2 to 7 and add $2 fast?
-    MARCdf = pd.DataFrame(columns=["LDR","006","007","008","035$z","040$a","040$b","040$c","041$a","1001 $a","1102 $a","24510$a","264 1$a","264 1$b","264 1$c","300$a","336$a","336$b","336$2","337$a","337$b","337$2","338$a","338$b","338$2","347$a","347$2","3479 $b","3479 $c","4901 $a","4901 $v","533$a","533$b","533$c","533$d","533$n","533$5","588$a","588$5","600$a","610$a","650$a","700$a","710$a","830 0$a","830 0$v","901$a","988$a"],index=range(reci))
+    MARCdf = pd.DataFrame(columns=["LDR","006","007","008","035$z","040$a","040$b","040$e","040$c","0410 $a","1001 $a","1102 $a","24510$a","264 1$a","264 1$b","264 1$c","300$a","336$a","336$b","336$2","337$a","337$b","337$2","338$a","338$b","338$2","347$a","347$2","3479 $b","3479 $c","4901 $a","4901 $v","533$a","533$b","533$c","533$d","533$n","533$5","588$a","588$5","600$a","610$a","650$a","700$a","7101 $a","7101 $b","7101 $e","830 0$a","830 0$v","901$a","988$a"],index=range(reci))
     print("Processing dataframe...")
     #iterate through dataframe, populating MARC fields
     i = 0
