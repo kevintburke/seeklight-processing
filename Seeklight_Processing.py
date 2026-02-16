@@ -118,6 +118,8 @@ def mdprocess(i, row, MARCdf):
     MARCdf["040$b"][i] = "eng"
     MARCdf["040$e"][i] = "rda"
     MARCdf["040$c"][i] = "CaOOP"
+    MARCdf["055 3$a"][i] = "J103 H7"
+    MARCdf["24510$a"][i] = "Sessional paper"
     MARCdf["300$a"][i] = "1 online resource"
     MARCdf["336$a"][i] = "text"
     MARCdf["336$b"][i] = "txt"
@@ -131,13 +133,14 @@ def mdprocess(i, row, MARCdf):
     MARCdf["347$a"][i] = "text file"
     MARCdf["347$2"][i] = "rdaft"
     MARCdf["3479 $b"][i] = "PDF"
-    MARCdf["533$b"][i] = "New York :"
-    MARCdf["533$c"][i] = "JSTOR Seeklight,"
+    MARCdf["533$b"][i] = "Ottawa :"
+    MARCdf["533$c"][i] = "Library of Parliament,"
     MARCdf["533$5"][i] = "CaOOP"
     MARCdf["588$5"][i] = "CaOOP"
-    MARCdf["7101 $a"][i] = "Canada."
-    MARCdf["7101 $b"][i] = "Parliament.|House of Commons.|Office of the Government House Leader,"
-    MARCdf["7101 $e"][i] = "issuing body."
+    MARCdf["7109 $a"][i] = "Canada."
+    MARCdf["7109 $b"][i] = "Parliament.%House of Commons.%Office of the Government House Leader,"
+    ##Alma does not seem to accept 710$e when loading? Not sure why, but can add with normalization rule for the time being.
+    #MARCdf["7109 $e"][i] = "issuing body."
     MARCdf["901$a"][i] = "SESSIONPAP"
     #construct 008
     field008 = build008(row)
@@ -148,6 +151,8 @@ def mdprocess(i, row, MARCdf):
     #     MARCdf["041$a"][i] = str(row["Language"])
     ##Hard code language to eng and fre
     MARCdf["0410 $a"][i] = "eng|fre"
+    ##Add sessional paper number to call number
+    MARCdf["055 3$b"][i] = str(str(row["Filename"]).split("/")[-1]).rstrip(".pdfa")
     #split Creator into 110 and 710 at | if present
     # if "|" in row["Creator"]:
     #     MARCdf["1102 $a"][i] = str(row["Creator"])[:str(row["Creator"]).index('|')]
@@ -158,7 +163,7 @@ def mdprocess(i, row, MARCdf):
     MARCdf["700$a"][i] = str(row["Creator"]) + "|" + str(row["Named Entities"])
     #MARCdf["24510$a"][i] = str(row["Title"])
     ##Replace title with filename
-    MARCdf["24510$a"][i] = str(str(row["Filename"]).split("/")[-1]).rstrip(".pdfa")
+    MARCdf["24510$b"][i] = str(str(row["Filename"]).split("/")[-1]).rstrip(".pdfa")
     # MARCdf["264 1$a"][i] = str(row["Location"])
     # MARCdf["264 1$b"][i] = str(row["Publisher"])
     ##Hard-coding publisher
@@ -188,7 +193,7 @@ def mdprocess(i, row, MARCdf):
     else:
         MARCdf["533$a"][i] = "Electronic reproduction."
         MARCdf["533$n"][i] = "Electronic reproduction from printed material held by the Library of Parliament."
-        MARCdf["588$a"][i] = "Portions of the metadata in this bibliographic record were created with the help of AI by JSTOR Seeklight."
+        MARCdf["588$a"][i] = "Portions of the metadata in this bibliographic record were created with the help of AI."
         MARCdf["830 0$a"][i] = "Sessional paper (Canada. Parliament. House of Commons) ; "
     MARCdf["830 0$v"][i] = str(str(row["Filename"]).split("/")[-1]).rstrip(".pdfa")
     MARCdf["988$a"][i] = str(row["Filename"]).split("/")[-1]
@@ -222,9 +227,9 @@ def main():
         quit
     #create dataframe to receive reformatted data
     reci = len(df)
-    ## "520$a" removed at request
-    ##Change 600 & 610 ind2 to 7 and add $2 fast?
-    MARCdf = pd.DataFrame(columns=["LDR","006","007","008","035$z","040$a","040$b","040$e","040$c","0410 $a","1001 $a","1102 $a","24510$a","264 1$a","264 1$b","264 1$c","300$a","336$a","336$b","336$2","337$a","337$b","337$2","338$a","338$b","338$2","347$a","347$2","3479 $b","3479 $c","4901 $a","4901 $v","533$a","533$b","533$c","533$d","533$n","533$5","588$a","588$5","600$a","610$a","650$a","700$a","7101 $a","7101 $b","7101 $e","830 0$a","830 0$v","901$a","988$a"],index=range(reci))
+    ##"520$a" removed at request
+    ##710 currently only used for preset data (ind1=9 used to isolate and merge on import); if using in future, add another set using ind1=2.
+    MARCdf = pd.DataFrame(columns=["LDR","006","007","008","035$z","040$a","040$b","040$e","040$c","0410 $a","055 3$a","055 3$b","1001 $a","1102 $a","24510$a","24510$b","264 1$a","264 1$b","264 1$c","300$a","336$a","336$b","336$2","337$a","337$b","337$2","338$a","338$b","338$2","347$a","347$2","3479 $b","3479 $c","4901 $a","4901 $v","533$a","533$b","533$c","533$d","533$n","533$5","588$a","588$5","600$a","610$a","650$a","700$a","7109 $a","7109 $b","830 0$a","830 0$v","901$a","988$a"],index=range(reci))
     print("Processing dataframe...")
     #iterate through dataframe, populating MARC fields
     i = 0
