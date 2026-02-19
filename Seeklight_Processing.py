@@ -8,7 +8,7 @@ import datetime
 ##PROCESSES OUTPUT OF SEEKLIGHT AI AND CONVERTS TO WORKABLE MARC IN XLSX FOR IMPORT TO ALMA##
 
 #Hard code list of headings to remove from records
-XHEADINGS = ["Canada","Twenty-second century","Twenty-first century","Twentieth century","Nineteenth century","Eighteenth century","Seventeenth century","Sixteenth century","Fifteenth century"]
+XHEADINGS = ["Canada","Twenty-second century","Twenty-first century","Twentieth century","Nineteenth century","Eighteenth century","Seventeenth century","Sixteenth century","Fifteenth century","Government regulation of ..."]
 
 def filemerge(files):
     ##Should default to UTF-8, but may need to change this to with open(file, encoding="utf-8) as fh: df = pd.read_excel(fh)
@@ -181,14 +181,14 @@ def mdprocess(i, row, MARCdf):
     #MARCdf["610$a"][i] = str(row["Named Entities"])
     ##All named entities to 700 with creator
     #Remove unwanted headings
-    #headings = removeheadings(str(row["Subject"]))
-    #MARCdf["650$a"][i] = headings
-    ##Removing all headings
-    #Conditional handling of 533$a/n, 588$a, 830$a, defaulting to English unless French specified in 040$b
+    headings = removeheadings(str(row["Subject"]))
+    MARCdf["650 0$a"][i] = headings
+    ##Removing all headings --Put back in on 20260219 -KB
+    #Conditional handling of 533$a/n, 588$a, 830$a, defaulting to English unless French specified in 040$b (currently hard-coded to eng, so never fre)
     if MARCdf["040$b"][i] == "fre":
         MARCdf["533$a"][i] = "Reproduction électronique."
         MARCdf["533$n"][i] = "Reproduction électronique de documents imprimés détenus par la Bibliothèque du Parlement."
-        MARCdf["588$a"][i] = "Certaines métadonnées de cette notice bibliographique ont été générées à l’aide de l’IA par JSTOR Seeklight."
+        MARCdf["588$a"][i] = "Certaines métadonnées de cette notice bibliographique ont été générées à l’aide de l’IA."
         MARCdf["830 0$a"][i] = "Document parlementaire (Canada. Parlement. Chambre des communes) ; "
     else:
         MARCdf["533$a"][i] = "Electronic reproduction."
@@ -229,7 +229,7 @@ def main():
     reci = len(df)
     ##"520$a" removed at request
     ##710 currently only used for preset data (ind1=9 used to isolate and merge on import); if using in future, add another set using ind1=2.
-    MARCdf = pd.DataFrame(columns=["LDR","006","007","008","035$z","040$a","040$b","040$e","040$c","0410 $a","055 3$a","055 3$b","1001 $a","1102 $a","24510$a","24510$b","264 1$a","264 1$b","264 1$c","300$a","336$a","336$b","336$2","337$a","337$b","337$2","338$a","338$b","338$2","347$a","347$2","3479 $b","3479 $c","4901 $a","4901 $v","533$a","533$b","533$c","533$d","533$n","533$5","588$a","588$5","600$a","610$a","650$a","700$a","7109 $a","7109 $b","830 0$a","830 0$v","901$a","988$a"],index=range(reci))
+    MARCdf = pd.DataFrame(columns=["LDR","006","007","008","035$z","040$a","040$b","040$e","040$c","0410 $a","055 3$a","055 3$b","1001 $a","1102 $a","24510$a","24510$b","264 1$a","264 1$b","264 1$c","300$a","336$a","336$b","336$2","337$a","337$b","337$2","338$a","338$b","338$2","347$a","347$2","3479 $b","3479 $c","4901 $a","4901 $v","533$a","533$b","533$c","533$d","533$n","533$5","588$a","588$5","600$a","610$a","650 0$a","700$a","7109 $a","7109 $b","830 0$a","830 0$v","901$a","988$a"],index=range(reci))
     print("Processing dataframe...")
     #iterate through dataframe, populating MARC fields
     i = 0
