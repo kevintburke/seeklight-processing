@@ -4,25 +4,49 @@ import os
 from stat import *
 from hurry.filesize import size as sz
 import datetime
+import re
 
 ##PROCESSES OUTPUT OF SEEKLIGHT AI AND CONVERTS TO WORKABLE MARC IN XLSX FOR IMPORT TO ALMA##
 
 #Hard code list of headings to remove from records
-XHEADINGS = ["Canada","Twenty-second century","Twenty-first century","Twentieth century","Nineteenth century","Eighteenth century","Seventeenth century","Sixteenth century","Fifteenth century","Government regulation of ..."]
+XHEADINGS = ["Canada","Twenty-second century","Twenty-first century","Twentieth century","Nineteenth century","Eighteenth century","Seventeenth century","Sixteenth century","Fifteenth century","Government regulation of ...","Government publications","Canadian provinces","Commons","Nineteen eighties","Nineteen fifties","Nineteen forties","Nineteen hundreds (Decade)","Nineteen nineties","Nineteen seventies","Nineteen sixties","Nineteen tens","Nineteen thirties","Nineteen twenties","Two thousand, A.D."]
+
+def checkfiles(pdfs,df):
+    #Create list of filenames to check against PDFs in directory
+    filenames = df["Filename"].to_list()
+    print(pdfs, filenames)
+    #Check for PDF filenames in Seeklight export
+    extrapdfs = []
+    for pdf in pdfs:
+        if pdf not in filenames:
+            extrapdfs.append(pdf)
+    #Check Seeklight export filenames against PDFs
+    extrarecords = []
+    for file in filenames:
+        if file not in pdfs:
+            extrarecords.append(file)
+    if len(extrapdfs) > 0:
+        messagebox.showwarning(title="Error",message=f'Error: Missing records for the following PDFs: {extrapdfs}.\nPlease verify contents of directory and Seeklight export and try again.')
+        exit()
+    if len(extrarecords) > 0:
+        messagebox.showwarning(title="Error",message=f'Error: Missing PDFs from directory for the following records: {extrarecords}.\nPlease verify contents of directory and Seeklight export and try again.')
+        exit()
+    if len(extrarecords) == 0 and len(extrapdfs) == 0:
+        print("Contents of directory confirmed. Processing...")
 
 def filemerge(files):
     ##Should default to UTF-8, but may need to change this to with open(file, encoding="utf-8) as fh: df = pd.read_excel(fh)
-    f1 = pd.read_excel(files[0], names=["SSID","Filename","File i","Title","Creator","Volume","Issue","Date","Language","Description","Subject","Type","Coverage","Format","Publisher","Medium","Technique","Material","Measurements","Style","Culture","Period","Location","Named Entities","Keywords","Resource Type","Media URL"])
+    f1 = pd.read_excel(files[0], names=["SSID","Filename","File Count","Title","Creator","Volume","Issue","Date","Language","Description","Subject","Type","Coverage","Format","Publisher","Medium","Technique","Material","Measurements","Style","Culture","Period","Location","Named Entities","Keywords","Resource Type","Media URL"])
     for file in files[1:]:
         #Error checking for filetype
         try:
             pd.read_excel(file)
             print("File read successfully. Continuing with processing...")
         except Exception as e:
-            print(f'Error: File read of {file} unsuccessful due to the following: {e}\nPlease ensure all Excel files in directory are valid Seeklight exports in .xlsx format.')
-            quit
+            messagebox.showwarning(title="Error",message=f'Error: File read of {file} unsuccessful due to the following: {e}\nPlease ensure all Excel files in directory are valid Seeklight exports in .xlsx format.')
+            exit()
         ##Should default to UTF-8, but may need to change this to with open(file, encoding="utf-8) as fh: df = pd.read_excel(fh)
-        f2 = pd.read_excel(file, names=["SSID","Filename","File i","Title","Creator","Volume","Issue","Date","Language","Description","Subject","Type","Coverage","Format","Publisher","Medium","Technique","Material","Measurements","Style","Culture","Period","Location","Named Entities","Keywords","Resource Type","Media URL"])
+        f2 = pd.read_excel(file, names=["SSID","Filename","File Count","Title","Creator","Volume","Issue","Date","Language","Description","Subject","Type","Coverage","Format","Publisher","Medium","Technique","Material","Measurements","Style","Culture","Period","Location","Named Entities","Keywords","Resource Type","Media URL"])
         f1 = pd.concat([f1, f2], ignore_index=True, sort=False)
     return (f1)
 
@@ -84,8 +108,8 @@ def getfilesize(row):
     try:
         filesize = os.stat(str(row["Filename"]).split("/")[-1]).st_size
     except Exception as e:
-        messagebox.showinfo(title="Error",message="Error: Unable to proceed. Please ensure all PDFs are present.")
-        quit
+        messagebox.showinfo(title="Error",message="Error: Unable to proceed. Please ensure all PDFs are present and filenames match Seeklight output.")
+        exit()
     #Add B to suffix; formatting will be fixed on import to Alma
     filesize = sz(filesize) + "B"
     return(filesize)
@@ -107,7 +131,7 @@ def removeheadings(subjects):
     for i in delindex:
         headings.pop(i)
     #Return headings as string (will be split on import to Alma)
-    return "|".join(headings)
+    return "%".join(headings)
 
 def mdprocess(i, row, MARCdf):
     #set fixed/default fields (LDR, 040, 300, 336, 337, 338, 347 (partial), 533 (partial), 588 (partial), 901)
@@ -160,7 +184,7 @@ def mdprocess(i, row, MARCdf):
     # else:
     #     MARCdf["1102 $a"][i] = str(row["Creator"])
     ##Putting all creators/named entities in 700 by default
-    MARCdf["700$a"][i] = str(row["Creator"]) + "|" + str(row["Named Entities"])
+    MARCdf["700$a"][i] = str(row["Creator"]) + "%" + str(re.sub(r'\|','%',str(row["Named Entities"])))
     #MARCdf["24510$a"][i] = str(row["Title"])
     ##Replace title with filename
     MARCdf["24510$b"][i] = str(str(row["Filename"]).split("/")[-1]).rstrip(".pdfa")
@@ -209,10 +233,17 @@ def main():
     #List all files in directory
     allfiles = os.listdir(direc)
     xlfiles = []
-    #Extract all Excel files for handling
+    pdfs = []
+    #Extract all Excel files and PDFs for handling
     for file in allfiles:
         if ".xlsx" in file:
             xlfiles.append(file)
+        elif ".pdf" in file or ".pdfa" in file:
+            pdfs.append(file)
+        else:
+            strays = messagebox.askokcancel(title="Error",message=f'Potential Error: "{file}" is not of an allowed type. Please confirm that folder contains only Seeklight export(s) in .xlsx and PDFs (or subdirectories meant to be ignored). Click OK to continue, Cancel to abort.')
+            if strays == False:
+                exit()
     #check file(s) and merge into single file for processing if more than one; quit if no file selected.
     if len(xlfiles) > 1:
         df = filemerge(xlfiles)
@@ -225,6 +256,8 @@ def main():
     else:
         print("Error: Please ensure at least one valid Seeklight export (Excel file) is present.")
         quit
+    #Check PDFs against filenames in Seeklight export
+    checkfiles(pdfs, df)
     #create dataframe to receive reformatted data
     reci = len(df)
     ##"520$a" removed at request
