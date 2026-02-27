@@ -161,8 +161,8 @@ def mdprocess(i, row, MARCdf):
     MARCdf["533$c"][i] = "Library of Parliament,"
     MARCdf["533$5"][i] = "CaOOP"
     MARCdf["588$5"][i] = "CaOOP"
-    MARCdf["7109 $a"][i] = "Canada."
-    MARCdf["7109 $b"][i] = "Parliament.%House of Commons.%Office of the Government House Leader,"
+    #MARCdf["7109 $a"][i] = "Canada."
+    #MARCdf["7109 $b"][i] = "Parliament.%House of Commons.%Office of the Government House Leader,"
     ##Alma does not seem to accept 710$e when loading? Not sure why, but can add with normalization rule for the time being.
     #MARCdf["7109 $e"][i] = "issuing body."
     MARCdf["901$a"][i] = "SESSIONPAP"
@@ -278,4 +278,5 @@ def main():
     messagebox.showinfo(title="",message=f'Output saved to {output}.xlsx. Process complete.')
 
 if __name__ == "__main__":
+
     main()
