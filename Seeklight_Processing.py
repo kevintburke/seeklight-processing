@@ -143,7 +143,7 @@ def mdprocess(i, row, MARCdf):
     MARCdf["040$e"][i] = "rda"
     MARCdf["040$c"][i] = "CaOOP"
     MARCdf["055 3$a"][i] = "J103 H7"
-    MARCdf["24510$a"][i] = "Sessional paper"
+    MARCdf["24500$a"][i] = "Sessional paper :"
     MARCdf["300$a"][i] = "1 online resource"
     MARCdf["336$a"][i] = "text"
     MARCdf["336$b"][i] = "txt"
@@ -174,24 +174,28 @@ def mdprocess(i, row, MARCdf):
     # if "|" in str(row["Language"]):
     #     MARCdf["041$a"][i] = str(row["Language"])
     ##Hard code language to eng and fre
-    MARCdf["0410 $a"][i] = "eng|fre"
+    MARCdf["0410 $a"][i] = "eng%fre"
     ##Add sessional paper number to call number
     MARCdf["055 3$b"][i] = str(str(row["Filename"]).split("/")[-1]).rstrip(".pdfa")
+    ##Putting all creators/named entities in 700 by default
     #split Creator into 110 and 710 at | if present
     # if "|" in row["Creator"]:
     #     MARCdf["1102 $a"][i] = str(row["Creator"])[:str(row["Creator"]).index('|')]
     #     MARCdf["710$a"][i] = str(row["Creator"])[str(row["Creator"]).index('|'):]
     # else:
     #     MARCdf["1102 $a"][i] = str(row["Creator"])
-    ##Putting all creators/named entities in 700 by default
-    MARCdf["700$a"][i] = str(row["Creator"]) + "%" + str(re.sub(r'\|','%',str(row["Named Entities"])))
-    #MARCdf["24510$a"][i] = str(row["Title"])
+    ##Check for existence of Creator; if none, exclude
+    if str(row["Creator"]) != "nan":
+        MARCdf["700$a"][i] = str(row["Creator"]) + "%" + str(re.sub(r'\|','%',str(row["Named Entities"])))
+    else:
+        MARCdf["700$a"][i] = str(re.sub(r'\|','%',str(row["Named Entities"])))
+    #MARCdf["24500$a"][i] = str(row["Title"])
     ##Replace title with filename
-    MARCdf["24510$b"][i] = str(str(row["Filename"]).split("/")[-1]).rstrip(".pdfa")
+    MARCdf["24500$b"][i] = str(str(row["Filename"]).split("/")[-1]).rstrip("pdfa")
     # MARCdf["264 1$a"][i] = str(row["Location"])
     # MARCdf["264 1$b"][i] = str(row["Publisher"])
     ##Hard-coding publisher
-    MARCdf["264 1$a"][i] = "[Ottawa]:"
+    MARCdf["264 1$a"][i] = "[Ottawa] :"
     MARCdf["264 1$b"][i] = "[House of Commons],"
     MARCdf["264 1$c"][i] = str(row["Date"])[:4] + "."
     MARCdf["3479 $c"][i] = str(getfilesize(row))
@@ -207,7 +211,7 @@ def mdprocess(i, row, MARCdf):
     #Remove unwanted headings
     headings = removeheadings(str(row["Subject"]))
     MARCdf["650 0$a"][i] = headings
-    ##Removing all headings --Put back in on 20260219 -KB
+    ##Removing all headings --Put back in on 20260219 by request -KB
     #Conditional handling of 533$a/n, 588$a, 830$a, defaulting to English unless French specified in 040$b (currently hard-coded to eng, so never fre)
     if MARCdf["040$b"][i] == "fre":
         MARCdf["533$a"][i] = "Reproduction électronique."
@@ -261,8 +265,8 @@ def main():
     #create dataframe to receive reformatted data
     reci = len(df)
     ##"520$a" removed at request
-    ##710 currently only used for preset data (ind1=9 used to isolate and merge on import); if using in future, add another set using ind1=2.
-    MARCdf = pd.DataFrame(columns=["LDR","006","007","008","035$z","040$a","040$b","040$e","040$c","0410 $a","055 3$a","055 3$b","1001 $a","1102 $a","24510$a","24510$b","264 1$a","264 1$b","264 1$c","300$a","336$a","336$b","336$2","337$a","337$b","337$2","338$a","338$b","338$2","347$a","347$2","3479 $b","3479 $c","4901 $a","4901 $v","533$a","533$b","533$c","533$d","533$n","533$5","588$a","588$5","600$a","610$a","650 0$a","700$a","7109 $a","7109 $b","830 0$a","830 0$v","901$a","988$a"],index=range(reci))
+    ##Removing 100, 110, 600, 610, and 710 (not currently in use; may need to re-add in future)
+    MARCdf = pd.DataFrame(columns=["LDR","006","007","008","035$z","040$a","040$b","040$e","040$c","0410 $a","055 3$a","055 3$b","24500$a","24500$b","264 1$a","264 1$b","264 1$c","300$a","336$a","336$b","336$2","337$a","337$b","337$2","338$a","338$b","338$2","347$a","347$2","3479 $b","3479 $c","4901 $a","4901 $v","533$a","533$b","533$c","533$d","533$n","533$5","588$a","588$5","650 0$a","700$a","830 0$a","830 0$v","901$a","988$a"],index=range(reci))
     print("Processing dataframe...")
     #iterate through dataframe, populating MARC fields
     i = 0
@@ -278,5 +282,4 @@ def main():
     messagebox.showinfo(title="",message=f'Output saved to {output}.xlsx. Process complete.')
 
 if __name__ == "__main__":
-
     main()

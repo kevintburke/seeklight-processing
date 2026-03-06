@@ -1,0 +1,37 @@
+##Current version (updated 2026/03/06 -KB)
+##	-Split 041 using % as delimiter
+##	-Correct 347$c formatting
+##	-Split 650 and 700 using % as delimiter
+##	-Delete 650 and 700 where exists % OR "nan" (redundancy to delete any null values that might slip through)
+##	-Correct 347 ind2 -> " " (NB: ONLY WHEN $b/c PRESENT)
+
+rule "Seeklight Import - correct 347$c spacing"
+salience 90
+when
+exists "347.c"
+then
+replaceContents "347.c.BB" with " B"
+replaceContents "347.c.KB" with " KB"
+replaceContents "347.c.MB" with " MB"
+replaceContents "347.c.GB" with " GB"
+changeFirstIndicator "347" to " "
+end
+
+rule "Split 041, 650, and 700 using % as delimiter"
+salience 60
+when
+TRUE
+then
+splitSubField "041.a.%"
+splitSubField "650.a.%" to "650.a"
+splitSubField "700.a.%" to "700.a"
+end
+
+rule "Delete 650 and 700 if exists % or nan"
+salience 30
+when
+TRUE
+then
+removeField "650" if (exists "650.a.%") or (exists "650.a.nan")
+removeField "700" if (exists "700.a.%") or (exists "700.a.nan")
+end
