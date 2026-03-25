@@ -142,7 +142,8 @@ def mdprocess(i, row, MARCdf):
     MARCdf["040$b"][i] = "eng"
     MARCdf["040$e"][i] = "rda"
     MARCdf["040$c"][i] = "CaOOP"
-    MARCdf["055 3$a"][i] = "J103 H7"
+    MARCdf["043$a"][i] = "n-cn---"
+    MARCdf["055 3$a"][i] = "J103 H61"
     MARCdf["24500$a"][i] = "Sessional paper :"
     MARCdf["300$a"][i] = "1 online resource"
     MARCdf["336$a"][i] = "text"
@@ -203,7 +204,7 @@ def mdprocess(i, row, MARCdf):
     MARCdf["4901 $v"][i] = str(str(row["Filename"]).split("/")[-1]).rstrip(".pdfa")
     ##533$d using datetime to fetch current year
     currentyear = datetime.date.today().strftime("%Y")
-    MARCdf["533$d"][i] = str(currentyear)
+    MARCdf["533$d"][i] = str(currentyear) + "."
     #MARCdf["520$a"][i] = str(row["Description"])
     ##520 removed at request
     #MARCdf["610$a"][i] = str(row["Named Entities"])
@@ -266,7 +267,7 @@ def main():
     reci = len(df)
     ##"520$a" removed at request
     ##Removing 100, 110, 600, 610, and 710 (not currently in use; may need to re-add in future)
-    MARCdf = pd.DataFrame(columns=["LDR","006","007","008","035$z","040$a","040$b","040$e","040$c","0410 $a","055 3$a","055 3$b","24500$a","24500$b","264 1$a","264 1$b","264 1$c","300$a","336$a","336$b","336$2","337$a","337$b","337$2","338$a","338$b","338$2","347$a","347$2","3479 $b","3479 $c","4901 $a","4901 $v","533$a","533$b","533$c","533$d","533$n","533$5","588$a","588$5","650 0$a","700$a","830 0$a","830 0$v","901$a","988$a"],index=range(reci))
+    MARCdf = pd.DataFrame(columns=["LDR","006","007","008","035$z","040$a","040$b","040$e","040$c","0410 $a","043$a","055 3$a","055 3$b","24500$a","24500$b","264 1$a","264 1$b","264 1$c","300$a","336$a","336$b","336$2","337$a","337$b","337$2","338$a","338$b","338$2","347$a","347$2","3479 $b","3479 $c","4901 $a","4901 $v","533$a","533$b","533$c","533$d","533$n","533$5","588$a","588$5","650 0$a","700$a","830 0$a","830 0$v","901$a","988$a"],index=range(reci))
     print("Processing dataframe...")
     #iterate through dataframe, populating MARC fields
     i = 0
